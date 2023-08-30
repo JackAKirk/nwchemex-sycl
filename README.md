@@ -1,2 +1,1 @@
-# nwchemex-sycl
-Build scripts for NWCHEMEX (Coupled Clustering) for SYCL version (these are for AMD GPU)
+Instructions to build NWCHEM/CCSD_T on AMD with SYCL

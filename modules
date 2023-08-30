@@ -1,0 +1,1 @@
+module load cmake gcc ninja rocm/4.5.2 compiler/2023.0.0 mpi
