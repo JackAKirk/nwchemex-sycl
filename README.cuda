@@ -1,0 +1,115 @@
+Instructions for building on perlmutter
+
+Module list:
+
+Currently Loaded Modules:
+  1) craype-x86-milan                        6) cray-dsmml/0.2.2       11) perftools-base/23.03.0   16) cudatoolkit/11.7
+  2) libfabric/1.15.2.0                      7) cray-libsci/23.02.1.1  12) cpe/23.03                17) craype-accel-nvidia80
+  3) craype-network-ofi                      8) cray-mpich/8.1.25      13) xalt/2.10.2              18) gpu/1.0
+  4) xpmem/2.5.2-2.4_3.50__gd0f7936.shasta   9) craype/2.7.20          14) Nsight-Compute/2022.1.1  19) cmake/3.22.0          (buildtools)
+  5) PrgEnv-gnu/8.3.3                       10) gcc/11.2.0             15) Nsight-Systems/2022.2.1
+
+  Where:
+   buildtools:  Software Build Tools
+
+ 
+In this build we don't use Cray-aware MPI, so
+export MPICH_GPU_SUPPORT_ENABLED=0
+
+Since there is no regular build of LLVM SYCL (dpcpp) on perlmutter, the llvm tip was built from source.
+Here is lives in $PSCRATCH/llvm and is built into $PSCRATCH/llvm-build
+
+CMAKE script for llvm:
+
+CUDA_LIB_PATH=$CUDA_HOME/lib64/stubs \
+CC=gcc CXX=g++ \
+python3 llvm/buildbot/configure.py --cuda \
+--cmake-opt=-DCUDA_TOOLKIT_ROOT_DIR=$CUDA_HOME \
+-o $PSCRATCH/llvm-build
+
+CUDA_LIB_PATH=$CUDA_HOME/lib64/stubs \
+CC=gcc CXX=g++ \
+python3 llvm-build/buildbot/compile.py
+
+Add llvm-build/install/bin to your PATH and llvm-build/install/lib to your LD_LIBRARY_PATH
+
+
+#--cmake-opt=-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+
+Then:
+bash linpack.sh		# needed to link MKL; only used for testing
+bash build-mkl.sh
+# add oneMKL to LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/oneMKL/install/lib:$LD_LIBRARY_PATH
+# build tamm
+bash build-nwchem-cuda-tamm.sh
+# build CC
+build-nwchem-cuda-CC.sh
+
+Exachem_sycl_cuda/install_sycl_cuda/bin contains CCSD_T . Copy Exachem_sycl_cuda/CoupledCluster/inputs/uracil.json
+to the bin director and edit it:
+
+$ diff uracil.json ../../CoupledCluster/inputs/
+41c41
+<       "skip_ccsd": true,
+---
+>       "skip_ccsd": false,
+
+Then salloc a node and you can run with:
+srun -n 2 CCSD_T ./uracil.json
+
+n must be 1 + the number of GPUs, so 2,3,4 or 5.
+
+Note that there is a missing patch in the main kernel that slows performance down substantially. You
+can apply the patch to Exachem_sycl_cuda/CoupledCluster/methods/cc/ccsd_t/ccsd_t_all_fused_nontcCuda_Hip_Sycl.cpp
+from ccsd.patch:
+
+cd Exachem_sycl_cuda/CoupledCluster
+patch -p 1 <ccsd.patch
+
+Then build CCSD_T:
+
+cd Exachem_sycl_cuda/CoupledCluster/build_sycl/
+make install
+
+On one GPU the performance should look like this (run out of build_sycl/install/bin):
+nid001844:bin$ srun -n 2 CCSD_T uracil.json
+
+Date: Fri Sep  8 10:33:46 2023
+
+<lines deleted>
+
+----------------------------------------------------------------------
+Total CPU memory required for (T) calculation = 5.81 GiB
+ -- memory required for the input tensors: 2.33 GiB
+ -- memory required for intermediate buffers: 0.89 GiB
+ -- memory required for caching t1,t2,v2 blocks (set cache_size option in the input file to a lower value to reduce this memory requirement further): 2.59 GiB
+----------------------------------------------------------------------
+
+CCSD MO Tiles = [29,29,35,34,34,35,34,34,]
+
+Running Closed Shell CCSD(T) calculation
+running seq h3b loop variant...
+noa,nva = 1, 3
+noab,nvab = 2, 6
+MO Tiles = [29,29,40,40,23,40,40,23,]
+14256-seq3 loop variant
+
+
+------CCSD(T) Performance------
+Total CCSD(T) Time: 21.33
+   -> CCSD(T) Avg. Work Time: 21.330s (100.000%), (min,max) = (21.330,21.330)
+   -> Total Number of Operations: 6.279e+13
+   -> GFLOPS: 2943.714
+   -> Load imbalance: 0.000
+   -> S1-T1 GetTime: 0.000s (0.001%), (min,max) = (0.000,0.000)
+   -> S1-V2 GetTime: 0.083s (0.391%), (min,max) = (0.083,0.083)
+   -> D1-T2 GetTime: 0.025s (0.118%), (min,max) = (0.025,0.025)
+   -> D1-V2 GetTime: 0.026s (0.120%), (min,max) = (0.026,0.026)
+   -> D2-T2 GetTime: 0.043s (0.200%), (min,max) = (0.043,0.043)
+   -> D2-V2 GetTime: 0.372s (1.742%), (min,max) = (0.372,0.372)
+   -> Data Transfer (GB): 1.798
+
+In other words, the CCSD(T) time which is contained in the single GPU kernel is 21.33 seconds.
+
+Previously we obtained a time of under 18 seconds, so something has regressed.
