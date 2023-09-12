@@ -1,0 +1,38 @@
+Instructions for building on crusher:
+
+Some module customization is neccessary:
+
+source setup
+
+In this build we don't use Cray-aware MPI, so
+export MPICH_GPU_SUPPORT_ENABLED=0
+
+Note that this assumes there is a built-from-source llvm in $HOME/tools/llvm-build/install. This is built with
+rocm 5.5.1 loaded. Configuration is as follows:
+
+python3 llvm/buildbot/configure.py --hip -o llvm-build --cmake-opt=-DSYCL_BUILD_PI_HIP_ROCM_DIR=$ROCM_PATH
+python3 llvm/buildbot/compile.py -o llvm-build
+
+Then:
+bash build-mkl.sh
+# add oneMKL to LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/oneMKL/install/lib:$LD_LIBRARY_PATH
+# build tamm
+bash build-nwchem-cuda-tamm.sh
+# build CC
+build-nwchem-cuda-CC.sh
+
+Exachem_sycl_cuda/install_sycl_cuda/bin contains CCSD_T . Copy Exachem_sycl_cuda/CoupledCluster/inputs/uracil.json
+to the bin director and edit it:
+
+$ diff uracil.json ../../CoupledCluster/inputs/
+41c41
+<       "skip_ccsd": true,
+---
+>       "skip_ccsd": false,
+
+Then salloc a node and you can run with:
+srun -n 2 CCSD_T ./uracil.json
+
+n must be 1 + the number of GPUs, so 2,3,4 or 5.
+

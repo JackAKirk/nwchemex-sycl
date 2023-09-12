@@ -25,7 +25,7 @@ export CMAKE_OPTIONS="-DCMAKE_INSTALL_PREFIX=$PROJECT_DIR/install_sycl_rocm \
 -DGCCROOT=/opt/cray/pe/gcc/12.2.0/snos \
 -DBLIS_CONFIG=generic -DBUILD_LIBINT=ON \
         -DHDF5_ROOT=$HDF5_ROOT \
-        -DCMAKE_BUILD_TYPE=Release"
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo"
 echo $CMAKE_OPTIONS
 #-DBUILD_TESTS=OFF \
 
@@ -40,11 +40,8 @@ cd build_sycl
 CC=clang CXX=clang++ FC=gfortran cmake $CMAKE_OPTIONS \
 -DTAMM_CXX_FLAGS="-O3 -sycl-std=2020 -fsycl -fsycl-device-code-split=per_kernel -fsycl-default-sub-group-size 64 \
 -fno-sycl-id-queries-fit-in-int -Wsycl-strict -ffp-contract=on -fsycl-targets=amdgcn-amd-amdhsa \
--Xsycl-target-backend -O3 -Xsycl-target-backend --offload-arch=gfx90a -I${MPICH_DIR}/include" \
--DTAMM_EXTRA_LIBS="-L$MKLROOT/install/lib -lonemkl -lonemkl_blas_rocblas \
--L${MPICH_DIR}/lib -lmpi \
-${CRAY_XPMEM_POST_LINK_OPTS} -lxpmem \
-${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a}" \
+-Xsycl-target-backend --offload-arch=gfx90a " \
+-DTAMM_EXTRA_LIBS="-L$MKLROOT/install/lib -lonemkl -lonemkl_blas_rocblas " \
  ..
-make
+make -j 16
 make install
