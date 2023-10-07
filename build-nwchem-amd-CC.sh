@@ -33,7 +33,9 @@ echo $CMAKE_OPTIONS
 cd $PROJECT_DIR
 
 
-git clone -b CC https://github.com/NWChemEx-Project/CoupledCluster
+#git clone -b CC https://github.com/NWChemEx-Project/CoupledCluster
+# temp until PR is incorporated
+git clone -b lfmeadow-patches https://github.com/lfmeadow/CoupledCluster.git
 cd CoupledCluster
 mkdir build_sycl
 cd build_sycl
@@ -41,7 +43,9 @@ CC=clang CXX=clang++ FC=gfortran cmake $CMAKE_OPTIONS \
 -DTAMM_CXX_FLAGS="-O3 -sycl-std=2020 -fsycl -fsycl-device-code-split=per_kernel -fsycl-default-sub-group-size 64 \
 -fno-sycl-id-queries-fit-in-int -Wsycl-strict -ffp-contract=on -fsycl-targets=amdgcn-amd-amdhsa \
 -Xsycl-target-backend --offload-arch=gfx90a " \
--DTAMM_EXTRA_LIBS="-L$MKLROOT/install/lib -lonemkl -lonemkl_blas_rocblas " \
+-DTAMM_EXTRA_LIBS="-L$MKLROOT/install/lib -lonemkl -lonemkl_blas_rocblas \
+${CRAY_XPMEM_POST_LINK_OPTS} -lxpmem \
+${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a} " \
  ..
 make -j 16
 make install

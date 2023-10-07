@@ -22,8 +22,10 @@ bash build-nwchem-cuda-tamm.sh
 # build CC
 build-nwchem-cuda-CC.sh
 
+On crusher the executable and the input file need to be copied to a writeable filesystem, e.g., somewhere on /lustre.
+
 Exachem_sycl_cuda/install_sycl_cuda/bin contains CCSD_T . Copy Exachem_sycl_cuda/CoupledCluster/inputs/uracil.json
-to the bin director and edit it:
+to the bin directory and edit it:
 
 $ diff uracil.json ../../CoupledCluster/inputs/
 41c41
@@ -31,8 +33,11 @@ $ diff uracil.json ../../CoupledCluster/inputs/
 ---
 >       "skip_ccsd": false,
 
-Then salloc a node and you can run with:
-srun -n 2 CCSD_T ./uracil.json
+Then
 
-n must be 1 + the number of GPUs, so 2,3,4 or 5.
+bash srun.sh N
+
+where N is the number of GPUs to use. Note that srun.sh uses run.sh to set affinity to a particulary GPU based on MPI rank. There may be better ways to do this.
+
+This has been tested only on a single node.
 
