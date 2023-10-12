@@ -1,5 +1,6 @@
 Instructions for building on crusher:
 
+SYCL:
 Some module customization is neccessary:
 
 source setup
@@ -41,3 +42,17 @@ where N is the number of GPUs to use. Note that srun.sh uses run.sh to set affin
 
 This has been tested only on a single node.
 
+
+HIP:
+source setup.hip
+bash build-nwchem-amd-tamm-hip.sh
+bash build-nwchem-amd-CC-hip.sh
+
+Run instructions are about the same.
+
+
+Running the big problem:
+sub.sh or sub-hip.sh will queue batch jobs for the problem in the paper
+"Towards Cross-Platform Portability of Coupled-Cluster Methods with Perturbative Triples using SYCL"
+
+Modifications will be required for the correct account and location of the setup script and executable.
