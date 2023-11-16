@@ -7,7 +7,10 @@ Some module customization is necessary:
 source setup
 ```
 In this build we don't use Cray-aware MPI, so
+
+```
 export MPICH_GPU_SUPPORT_ENABLED=0
+```
 
 Note that this assumes there is a built-from-source intel/llvm repo in
 `$HOME/llvm/.` The "setup" file assumes that this is built
@@ -58,7 +61,7 @@ Then you can the program via e.g.
 ```
 bash srun.sh N
 ```
-or otherwise. Where N is the number of GPUs to use. Note that srun.sh uses run.sh to set affinity to a particulary GPU based on MPI rank. There may be better ways to do this.
+or otherwise. Where N is the number of GPUs to use. Note that `srun.sh` uses `run.sh` to set affinity to a particulary GPU based on MPI rank. There may be better ways to do this.
 
 This has been tested only on a single node.
 

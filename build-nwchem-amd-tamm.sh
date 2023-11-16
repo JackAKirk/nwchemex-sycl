@@ -7,7 +7,6 @@ export HIP_PATH=$ROCM_PATH/hip
 
 export CRAYPE_LINK_TYPE=dynamic
 
-#ROCM_PATH=$SYCL_BUILD_PI_HIP_ROCM_DIR
 declare rocm_version="${ROCM_PATH}"
 prefix="/opt/rocm-"
 rocm_version=${rocm_version#"$prefix"}

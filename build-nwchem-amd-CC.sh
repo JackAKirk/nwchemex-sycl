@@ -29,13 +29,14 @@ export CMAKE_OPTIONS="-DCMAKE_INSTALL_PREFIX=$PROJECT_DIR/install_sycl_rocm \
 echo $CMAKE_OPTIONS
 #-DBUILD_TESTS=OFF \
 
-#mkdir -p $PROJECT_DIR
+mkdir -p $PROJECT_DIR
 cd $PROJECT_DIR
 
 
 #git clone -b CC https://github.com/NWChemEx-Project/CoupledCluster
 # temp until PR is incorporated
-git clone -b lfmeadow-patches https://github.com/lfmeadow/CoupledCluster.git
+#git clone -b lfmeadow-patches https://github.com/lfmeadow/CoupledCluster.git
+git clone -b CC-updates https://github.com/JackAKirk/CoupledCluster.git
 cd CoupledCluster
 mkdir build_sycl
 cd build_sycl

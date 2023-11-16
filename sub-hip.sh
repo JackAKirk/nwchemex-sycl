@@ -135,8 +135,6 @@ do
 #SBATCH -J 631g_$i
 #SBATCH -o \%x-\%j.ccsd.n1.1GCD.out
 #SBATCH -t 01:00:00
-##SBATCH --mail-user=abagusetty@anl.gov
-##SBATCH --mail-type=END
 #SBATCH -N $i
 
 module unload craype-accel-amd-gfx90a
